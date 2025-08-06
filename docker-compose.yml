@@ -19,6 +19,7 @@ services:
       - WINGET_PORT=5000
       - WINGET_SSL_PORT=5443
       - WINGET_SSL_ENABLED=false
+      - APPLICATION_ROOT=/
       
       # Database Configuration  
       - APP_DATABASE_PATH=/app/data/Modules/Database/Database.db

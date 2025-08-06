@@ -24,6 +24,12 @@ app.secret_key = settings['SECRET_KEY'].encode()
 app.config['SESSION_COOKIE_NAME'] = app.config['SERVERNAME']
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['active_downloads'] = {}
+
+# Set APPLICATION_ROOT if environment variable is provided
+application_root = os.getenv('APPLICATION_ROOT')
+if application_root:
+    app.config['APPLICATION_ROOT'] = application_root
+
 app.jinja_env.add_extension('jinja2.ext.do')
 
 app.register_blueprint(login_bp, url_prefix='/')
