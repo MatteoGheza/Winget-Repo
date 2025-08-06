@@ -59,12 +59,24 @@ def global_settings():
 if __name__ == '__main__':
     start_up_check()
 
-    if len(sys.argv) > 1 and sys.argv[1] == "/dev":
+    # Docker-compatible configuration
+    host = os.getenv('WINGET_HOST', '127.0.0.1')
+    port = int(os.getenv('WINGET_PORT', '5000'))
+    ssl_port = int(os.getenv('WINGET_SSL_PORT', '5443'))
+    ssl_enabled = os.getenv('WINGET_SSL_ENABLED', 'false').lower() == 'true'
+    dev_mode = os.getenv('WINGET_DEV_MODE', 'false').lower() == 'true'
+
+    if len(sys.argv) > 1 and sys.argv[1] == "/dev" or dev_mode:
         status = generate_dev_certificate()
         if status:
             app.config['dev_mode'] = True
-            app.run(ssl_context=('SSL/cert.pem', 'SSL/key.pem'), threaded=True)
+            print(f"Starting Winget-Repo in development mode on https://{host}:{ssl_port}")
+            app.run(host=host, port=ssl_port, ssl_context=('SSL/cert.pem', 'SSL/key.pem'), threaded=True)
         else:
             print("Error while starting the development server! Please check the certificates!")
+    elif ssl_enabled:
+        print(f"Starting Winget-Repo with SSL on https://{host}:{ssl_port}")
+        app.run(host=host, port=ssl_port, ssl_context=('SSL/cert.pem', 'SSL/key.pem'), threaded=True)
     else:
-        app.run()
+        print(f"Starting Winget-Repo on http://{host}:{port}")
+        app.run(host=host, port=port, threaded=True)

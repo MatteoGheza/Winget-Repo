@@ -7,3 +7,4 @@
 /Files/
 /Static/images/Logos/
 .env
+docker-compose.prod.yml

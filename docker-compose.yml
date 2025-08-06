@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  winget-repo:
+    build: .
+    container_name: winget-repo
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+      - "5443:5443"  # For HTTPS when SSL is enabled
+    environment:
+      # Flask Configuration
+      - FLASK_ENV=production
+      - FLASK_DEBUG=false
+      - PYTHONPATH=/app
+      
+      # Winget-Repo Configuration
+      - WINGET_HOST=0.0.0.0
+      - WINGET_PORT=5000
+      - WINGET_SSL_PORT=5443
+      - WINGET_SSL_ENABLED=false
+      
+      # Database Configuration  
+      - APP_DATABASE_PATH=/app/data/Modules/Database/Database.db
+      
+      # File Storage Configuration
+      - FILES_PATH=/app/data/Files
+      - LOGOS_PATH=/app/data/static/images/Logos
+      - WINGET_REPOSITORY_PATH=/app/data/Winget_DB
+      
+      # Optional: Keycloak Configuration (uncomment if using Keycloak)
+      # - KEYCLOAK_ENABLED=true
+      # - KEYCLOAK_SERVER_URL=https://your-keycloak-server/
+      # - KEYCLOAK_REALM_NAME=master
+      # - KEYCLOAK_CLIENT_ID=winget-repo
+      # - KEYCLOAK_CLIENT_SECRET=your-client-secret
+      # - KEYCLOAK_REDIRECT_URI=http://localhost:5000/keycloak/callback
+      # - KEYCLOAK_POST_LOGOUT_REDIRECT_URI=http://localhost:5000/
+      # - KEYCLOAK_DEFAULT_GROUP=default-group-id
+      
+    volumes:
+      # Persistent data storage
+      - winget_data:/app/data
+      - winget_logs:/app/logs
+      
+      # Optional: Mount custom SSL certificates
+      # - ./ssl:/app/SSL:ro
+      
+      # Optional: Mount custom configuration
+      # - ./custom-settings.py:/app/settings.py:ro
+      
+    networks:
+      - winget-network
+      
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  winget_data:
+    driver: local
+  winget_logs:
+    driver: local
+
+networks:
+  winget-network:
+    driver: bridge

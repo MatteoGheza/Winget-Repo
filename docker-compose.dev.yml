@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  winget-repo-dev:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: winget-repo-dev
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+      - "5443:5443"  # For HTTPS in dev mode
+    environment:
+      # Flask Development Configuration
+      - FLASK_ENV=development
+      - FLASK_DEBUG=true
+      - PYTHONPATH=/app
+      
+      # Winget-Repo Development Configuration
+      - WINGET_HOST=0.0.0.0
+      - WINGET_PORT=5000
+      - WINGET_SSL_PORT=5443
+      - WINGET_SSL_ENABLED=true
+      - WINGET_DEV_MODE=true
+      
+      # Database Configuration  
+      - APP_DATABASE_PATH=/app/data/Modules/Database/Database.db
+      
+      # File Storage Configuration
+      - FILES_PATH=/app/data/Files
+      - LOGOS_PATH=/app/data/static/images/Logos
+      - WINGET_REPOSITORY_PATH=/app/data/Winget_DB
+      
+    volumes:
+      # Mount source code for development (live reload)
+      - .:/app
+      - /app/__pycache__
+      - /app/Modules/__pycache__
+      
+      # Persistent data storage
+      - winget_dev_data:/app/data
+      - winget_dev_logs:/app/logs
+      
+    networks:
+      - winget-dev-network
+      
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      
+    # Run in dev mode with auto-reload
+    command: ["python", "main.py", "/dev"]
+
+volumes:
+  winget_dev_data:
+    driver: local
+  winget_dev_logs:
+    driver: local
+
+networks:
+  winget-dev-network:
+    driver: bridge
